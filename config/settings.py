@@ -101,16 +101,36 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": config('DB_ENGINE', default='django.db.backends.sqlite3'),
-        "NAME": config('DB_NAME', default=str(BASE_DIR / "db.sqlite3")),
-        "USER": config('DB_USER', default=''),
-        "PASSWORD": config('DB_PASSWORD', default=''),
-        "HOST": config('DB_HOST', default=''),
-        "PORT": config('DB_PORT', default=''),
+# Parse DATABASE_URL if provided (Railway style)
+import dj_database_url
+
+DATABASE_URL = config('DATABASE_URL', default=None)
+
+if DATABASE_URL:
+    # Use Railway's DATABASE_URL
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=False
+        )
     }
-}
+else:
+    # Manual configuration
+    DATABASES = {
+        "default": {
+            "ENGINE": config('DB_ENGINE', default='django.db.backends.sqlite3'),
+            "NAME": config('DB_NAME', default=str(BASE_DIR / "db.sqlite3")),
+            "USER": config('DB_USER', default=''),
+            "PASSWORD": config('DB_PASSWORD', default=''),
+            "HOST": config('DB_HOST', default=''),
+            "PORT": config('DB_PORT', default=''),
+            "OPTIONS": {
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+                'charset': 'utf8mb4',
+            } if config('DB_ENGINE', default='').startswith('django.db.backends.mysql') else {},
+        }
+    }
 
 
 # Password validation
