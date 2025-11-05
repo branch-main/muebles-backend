@@ -177,12 +177,36 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # CORS Configuration  
-cors_origins = config('CORS_ALLOWED_ORIGINS', default=None)
-if cors_origins and cors_origins != 'http://localhost:5173,http://localhost:3000':
-    CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='', cast=Csv())
+cors_origins = config('CORS_ALLOWED_ORIGINS', default='')
+if cors_origins:
+    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
 else:
     CORS_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://localhost:3000']
+
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = False  # Set to True only for development debugging
+
+# Additional CORS settings for better compatibility
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # REST Framework
 REST_FRAMEWORK = {
@@ -192,12 +216,13 @@ REST_FRAMEWORK = {
 
 # Security settings for production
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    # Disable these for now until SSL is properly configured
+    # SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = 'DENY'
+    # X_FRAME_OPTIONS = 'DENY'  # Can cause issues with admin
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
