@@ -10,39 +10,42 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Try to import decouple, but provide fallback for development
 try:
-    from decouple import config, Csv
+    from decouple import Csv, config
 except ImportError:
     # Simple fallback for development when decouple is not installed
     def config(key, default=None, cast=None):
         value = os.environ.get(key, default)
         if cast and value is not None and value != default:
             if cast == bool:
-                return str(value).lower() in ('true', '1', 'yes')
+                return str(value).lower() in ("true", "1", "yes")
             return cast(value)
         return value
-    
+
     def Csv():
-        return lambda x: [i.strip() for i in x.split(',') if i.strip()]
+        return lambda x: [i.strip() for i in x.split(",") if i.strip()]
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default="django-insecure-6ipr4o5+hu)c5v147xt)9_x=-j^$kzwncu2%-1f*koh^h0sg!i")
+SECRET_KEY = config(
+    "SECRET_KEY",
+    default="django-insecure-6ipr4o5+hu)c5v147xt)9_x=-j^$kzwncu2%-1f*koh^h0sg!i",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config("DEBUG", default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv()) if config('ALLOWED_HOSTS', default=None) else ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -73,6 +76,7 @@ MIDDLEWARE = [
 # Add whitenoise if available (for production)
 try:
     import whitenoise
+
     MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 except ImportError:
@@ -104,33 +108,37 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Parse DATABASE_URL if provided (Railway style)
 import dj_database_url
 
-DATABASE_URL = config('DATABASE_URL', default=None)
+DATABASE_URL = config("DATABASE_URL", default=None)
 
 if DATABASE_URL:
     # Use Railway's DATABASE_URL
     DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=False
+        "default": dj_database_url.config(
+            default=DATABASE_URL, conn_max_age=600, ssl_require=False
         )
     }
 else:
     # Manual configuration
     DATABASES = {
         "default": {
-            "ENGINE": config('DB_ENGINE', default='django.db.backends.sqlite3'),
-            "NAME": config('DB_NAME', default=str(BASE_DIR / "db.sqlite3")),
-            "USER": config('DB_USER', default=''),
-            "PASSWORD": config('DB_PASSWORD', default=''),
-            "HOST": config('DB_HOST', default=''),
-            "PORT": config('DB_PORT', default=''),
+            "ENGINE": config("DB_ENGINE", default="django.db.backends.sqlite3"),
+            "NAME": config("DB_NAME", default=str(BASE_DIR / "db.sqlite3")),
+            "USER": config("DB_USER", default=""),
+            "PASSWORD": config("DB_PASSWORD", default=""),
+            "HOST": config("DB_HOST", default=""),
+            "PORT": config("DB_PORT", default=""),
             "OPTIONS": {
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-                'charset': 'utf8mb4',
-            } if config('DB_ENGINE', default='').startswith('django.db.backends.mysql') else {
-                'connect_timeout': 10,
-            } if config('DB_ENGINE', default='').startswith('django.db.backends.postgresql') else {},
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+                "charset": "utf8mb4",
+            }
+            if config("DB_ENGINE", default="").startswith("django.db.backends.mysql")
+            else {
+                "connect_timeout": 10,
+            }
+            if config("DB_ENGINE", default="").startswith(
+                "django.db.backends.postgresql"
+            )
+            else {},
         }
     }
 
@@ -176,42 +184,48 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# CORS Configuration  
-cors_origins = config('CORS_ALLOWED_ORIGINS', default='')
-if cors_origins:
-    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
+# CORS Configuration
+cors_origins = config("CORS_ALLOWED_ORIGINS", default="")
+cors_allow_all = config("CORS_ALLOW_ALL_ORIGINS", default=False, cast=bool)
+
+if cors_allow_all:
+    CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOWED_ORIGINS = []  # Not needed when allowing all
+elif cors_origins:
+    CORS_ALLOWED_ORIGINS = [
+        origin.strip() for origin in cors_origins.split(",") if origin.strip()
+    ]
 else:
-    CORS_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://localhost:3000']
+    CORS_ALLOWED_ORIGINS = ["http://localhost:5173", "http://localhost:3000"]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = False  # Set to True only for development debugging
 
 # Additional CORS settings for better compatibility
 CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
 ]
 
 CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
 ]
 
 # REST Framework
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
 }
 
 # Security settings for production
