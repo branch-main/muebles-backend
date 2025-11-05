@@ -128,7 +128,9 @@ else:
             "OPTIONS": {
                 'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
                 'charset': 'utf8mb4',
-            } if config('DB_ENGINE', default='').startswith('django.db.backends.mysql') else {},
+            } if config('DB_ENGINE', default='').startswith('django.db.backends.mysql') else {
+                'connect_timeout': 10,
+            } if config('DB_ENGINE', default='').startswith('django.db.backends.postgresql') else {},
         }
     }
 
