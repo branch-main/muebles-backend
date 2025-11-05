@@ -24,14 +24,13 @@ RUN pip install --upgrade pip && \
 # Copy project
 COPY . .
 
-# Collect static files
-RUN python manage.py collectstatic --noinput || true
-
 # Create media directory
 RUN mkdir -p media
 
 # Expose port
 EXPOSE 8000
 
-# Run gunicorn
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+# Run migrations and start server
+CMD python manage.py migrate && \
+    python manage.py collectstatic --noinput && \
+    gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3
